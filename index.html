@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flight Pool Map</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#f5f6f8;color:#202124;font-size:13px}
+.hdr{background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;padding:16px 20px}
+.hdr h1{font-size:18px;font-weight:600}
+.hdr p{font-size:11px;opacity:.8;margin-top:2px}
+.bar{padding:10px 16px;background:#fff;border-bottom:1px solid #e0e0e0;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.g{display:flex;flex-direction:column;gap:2px}
+.g label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#5f6368}
+.g input,.g select{padding:5px 8px;border:1px solid #e0e0e0;border-radius:5px;font-size:12px;outline:none;background:#fff}
+.g input:focus,.g select:focus{border-color:#1a73e8;box-shadow:0 0 0 2px #e8f0fe}
+#destSearch{width:180px}
+#airlineSearch{width:180px}
+#destSel{width:140px}
+.toggles label{font-size:11px;display:flex;align-items:center;gap:3px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0}
+.toggles input[type=checkbox]{accent-color:#1a73e8}
+.wrap{padding:8px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:#f8f9fa;padding:7px 8px;font-weight:600;font-size:10px;text-align:center;border-bottom:2px solid #e0e0e0;white-space:nowrap}
+th:first-child{text-align:left;min-width:100px}
+th.ov{background:#e8f0fe}
+tr{border-bottom:1px solid #f0f0f0}
+tr.co{background:#f1f3f4;cursor:pointer}
+tr.co:hover{background:#e8eaed}
+tr.co td{padding:6px 8px;font-weight:600;font-size:11px}
+tr.ci{background:#fff}
+tr.ci:hover{background:#f8f9fa}
+tr.ci td{padding:5px 8px}
+tr.ci td:first-child{padding-left:28px}
+.ex{display:inline-block;width:14px;font-size:8px;color:#5f6368;transition:transform .15s;text-align:center}
+.ex.op{transform:rotate(90deg)}
+.dn{display:inline-flex;align-items:center;gap:4px}
+.tg{font-size:8px;padding:1px 3px;border-radius:2px;font-weight:600}
+.tg.ct{background:#e3f2fd;color:#1565c0}
+.tg.cy{background:#f3e5f5;color:#7b1fa2}
+td.c{text-align:center;padding:5px 6px;vertical-align:middle}
+.pk{display:inline-flex;align-items:center;justify-content:center;background:#e8f0fe;color:#1a73e8;padding:2px 6px;border-radius:9px;font-size:11px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .12s;white-space:nowrap;min-width:38px;text-align:center}
+.pk:hover{background:#1a73e8;color:#fff;transform:scale(1.05)}
+.pk.na{background:transparent;color:#ddd;cursor:default;min-width:14px;font-size:9px}
+.pk.na:hover{background:transparent;color:#ddd;transform:none}
+.st{font-size:10px;color:#5f6368;padding:4px 16px}
+.st b{color:#202124}
+.clear-btn{font-size:10px;color:#1a73e8;cursor:pointer;margin-left:4px;text-decoration:underline}
+.clear-btn:hover{color:#0d47a1}
+</style>
+</head>
+<body>
+<div class="hdr"><h1>✈️ Flight Pool Map</h1><p>Click Pool ID to open link · Right-click to copy ID</p></div>
+<div class="bar">
+  <div class="g"><label>Destination Search</label><input type="text" id="destSearch" placeholder="e.g. CN, BKK, TH..."><span class="clear-btn" id="clearDest">clear</span></div>
+  <div class="g"><label>Airline Search</label><input type="text" id="airlineSearch" placeholder="e.g. SQ, AK, LH LX..."><span class="clear-btn" id="clearAir">clear</span></div>
+  
+  <div class="g toggles"><label>Toggle</label>
+    <div style="display:flex;gap:6px">
+      <label><input type="checkbox" id="togAll" checked> All class</label>
+      <label><input type="checkbox" id="togFc"> Business &amp; First class</label>
+    </div>
+  </div>
+  <div class="st" id="statsBar" style="margin-left:auto;align-self:center"></div>
+</div>
+<div class="wrap"><table><thead id="tH"></thead><tbody id="tB"></tbody></table></div>
+
+<script>
+var D={"destinations":[{"name":"CN","type":"country","country":"CN","cityPool":null,"pools":{"AK":"168785","FD":"168946","CA":"163948","CX":"163990","CZ":"169177","3U":"174819","ZH":"174784","NX":"191507","KE":"168337","OZ":"191549","MF":"169107","MH":"166629","MU":"163920","PR":"163640","SQ":"120940","TG":"164865","TR":"160070","VN":"166825","COUNTRY POOL (all class)":"197317","COUNTRY POOL (FC class)":"197450"}},{"name":"HKG","type":"country","country":"HKG","cityPool":null,"pools":{"AK":"168890","BR":"167588","CX":"163997","MH":"166664","MU":"164774","PR":"163605","SQ":"143886","TG":"165005","TR":"160126","VN":"166874","COUNTRY POOL (all class)":"197331","COUNTRY POOL (FC class)":"197555"}},{"name":"TW","type":"country","country":"TW","cityPool":null,"pools":{"BR":"167532","CI":"166951","CX":"164011","JX":"167672","MF":"169128","MU":"164767","PR":"165586","SQ":"143879","TG":"165040","TR":"160091","VN":"166839","COUNTRY POOL (all class)":"197324","COUNTRY POOL (FC class)":"197562"}},{"name":"TPE","type":"city","country":"TW","cityPool":"200670","pools":{"CITY POOL (all class)":"200670"}},{"name":"SHA","type":"city","country":"TW","cityPool":"200677","pools":{"CITY POOL (all class)":"200677"}},{"name":"BJS","type":"city","country":"TW","cityPool":"202462","pools":{"CITY POOL (all class)":"202462"}},{"name":"CAN","type":"city","country":"TW","cityPool":"202441","pools":{"CITY POOL (all class)":"202441"}},{"name":"KMG","type":"city","country":"TW","cityPool":"202448","pools":{"CITY POOL (all class)":"202448"}},{"name":"CTU","type":"city","country":"TW","cityPool":"202455","pools":{"CITY POOL (all class)":"202455"}},{"name":"SZX","type":"city","country":"TW","cityPool":"202469","pools":{"CITY POOL (all class)":"202469"}},{"name":"CKG","type":"city","country":"TW","cityPool":"202476","pools":{"CITY POOL (all class)":"202476"}},{"name":"XMN","type":"city","country":"TW","cityPool":"202483","pools":{"CITY POOL (all class)":"202483"}},{"name":"URC","type":"city","country":"TW","cityPool":"202490","pools":{"CITY POOL (all class)":"202490"}},{"name":"HRB","type":"city","country":"TW","cityPool":"202497","pools":{"CITY POOL (all class)":"202497"}},{"name":"SG","type":"country","country":"SG","cityPool":null,"pools":{}},{"name":"MY","type":"country","country":"MY","cityPool":null,"pools":{"AK":"168778","ET":"167819","MH":"166615","SQ":"143732","TR":"160056","COUNTRY POOL (all class)":"197338","COUNTRY POOL (FC class)":"197548"}},{"name":"KUL","type":"city","country":"MY","cityPool":"192928","pools":{"CITY POOL (all class)":"192928"}},{"name":"PEN","type":"city","country":"MY","cityPool":"192935","pools":{"CITY POOL (all class)":"192935"}},{"name":"KCH","type":"city","country":"MY","cityPool":"192942","pools":{"CITY POOL (all class)":"192942"}},{"name":"IPH","type":"city","country":"MY","cityPool":"192949","pools":{"CITY POOL (all class)":"192949"}},{"name":"BKI","type":"city","country":"MY","cityPool":"192956","pools":{"CITY POOL (all class)":"192956"}},{"name":"LGK","type":"city","country":"MY","cityPool":"192963","pools":{"CITY POOL (all class)":"192963"}},{"name":"JHB","type":"city","country":"MY","cityPool":null,"pools":{}},{"name":"TH","type":"country","country":"TH","cityPool":null,"pools":{"AK":"168841","FD":"168925","MH":"166622","PR":"163633","SQ":"143725","TG":"164851","TR":"160049","VN":"166853","PG":"191563","COUNTRY POOL (all class)":"197345","COUNTRY POOL (FC class)":"197541"}},{"name":"BKK","type":"city","country":"TH","cityPool":"194699","pools":{"CITY POOL (all class)":"194699"}},{"name":"CNX","type":"city","country":"TH","cityPool":"194713","pools":{"CITY POOL (all class)":"194713"}},{"name":"HKT","type":"city","country":"TH","cityPool":"194706","pools":{"CITY POOL (all class)":"194706"}},{"name":"HDY","type":"city","country":"TH","cityPool":"194720","pools":{"CITY POOL (all class)":"194720"}},{"name":"USM","type":"city","country":"TH","cityPool":"194727","pools":{"CITY POOL (all class)":"194727"}},{"name":"KBV","type":"city","country":"TH","cityPool":"194734","pools":{"CITY POOL (all class)":"194734"}},{"name":"ID","type":"country","country":"ID","cityPool":null,"pools":{"AK":"168799","QZ":"169814","MH":"166699","QF":"167637","SQ":"143739","SV":"191920","TR":"160063","GA":"186831","QG":"188658","COUNTRY POOL (all class)":"197366"}},{"name":"JKT","type":"city","country":"ID","cityPool":"194741","pools":{"CITY POOL (all class)":"194741"}},{"name":"DPS","type":"city","country":"ID","cityPool":"194748","pools":{"CITY POOL (all class)":"194748"}},{"name":"SUB","type":"city","country":"ID","cityPool":"194755","pools":{"CITY POOL (all class)":"194755"}},{"name":"JOG","type":"city","country":"ID","cityPool":"194762","pools":{"CITY POOL (all class)":"194762"}},{"name":"MES","type":"city","country":"ID","cityPool":"194769","pools":{"CITY POOL (all class)":"194769"}},{"name":"LOP","type":"city","country":"ID","cityPool":"194776","pools":{"CITY POOL (all class)":"194776"}},{"name":"VN","type":"country","country":"VN","cityPool":null,"pools":{"AK":"168827","MH":"166650","PR":"163654","SQ":"143746","TG":"165103","TR":"160084","VN":"166804","VJ":"202910","COUNTRY POOL (all class)":"197373"}},{"name":"SGN","type":"city","country":"VN","cityPool":"194783","pools":{"CITY POOL (all class)":"194783"}},{"name":"HAN","type":"city","country":"VN","cityPool":"194790","pools":{"CITY POOL (all class)":"194790"}},{"name":"DAD","type":"city","country":"VN","cityPool":"194797","pools":{"CITY POOL (all class)":"194797"}},{"name":"PQC","type":"city","country":"VN","cityPool":"194804","pools":{"CITY POOL (all class)":"194804"}},{"name":"NHA","type":"city","country":"VN","cityPool":"194811","pools":{"CITY POOL (all class)":"194811"}},{"name":"PH","type":"country","country":"PH","cityPool":null,"pools":{"AK":"168834","CX":"164046","MH":"166643","PR":"163577","SQ":"143753","TG":"165544","TR":"160077","VN":"166832","COUNTRY POOL (all class)":"197380"}},{"name":"MNL","type":"city","country":"PH","cityPool":"194818","pools":{"CITY POOL (all class)":"194818"}},{"name":"CEB","type":"city","country":"PH","cityPool":"194832","pools":{"CITY POOL (all class)":"194832"}},{"name":"CRK","type":"city","country":"PH","cityPool":"194825","pools":{"CITY POOL (all class)":"194825"}},{"name":"ILO","type":"city","country":"PH","cityPool":"194839","pools":{"CITY POOL (all class)":"194839"}},{"name":"BCD","type":"city","country":"PH","cityPool":"194846","pools":{"CITY POOL (all class)":"194846"}},{"name":"DVO","type":"city","country":"PH","cityPool":"194853","pools":{"CITY POOL (all class)":"194853"}},{"name":"JP","type":"country","country":"JP","cityPool":null,"pools":{"AK":"168848","FD":"168939","BR":"167553","CA":"163955","CI":"166958","CX":"164004","CZ":"169191","ZH":"174798","NX":"191514","JL":"167483","JX":"167686","KE":"168309","OZ":"191542","MF":"169114","MH":"166671","MU":"163927","NH":"166916","PR":"163584","SQ":"143760","TG":"164872","TR":"160098","VN":"166811","TW":"186824","COUNTRY POOL (all class)":"197352","COUNTRY POOL (FC class)":"197569"}},{"name":"TYO","type":"city","country":"JP","cityPool":"194860","pools":{"CITY POOL (all class)":"194860"}},{"name":"OSA","type":"city","country":"JP","cityPool":"194867","pools":{"CITY POOL (all class)":"194867"}},{"name":"SPK","type":"city","country":"JP","cityPool":"194874","pools":{"CITY POOL (all class)":"194874"}},{"name":"FUK","type":"city","country":"JP","cityPool":"194881","pools":{"CITY POOL (all class)":"194881"}},{"name":"NGO","type":"city","country":"JP","cityPool":"194888","pools":{"CITY POOL (all class)":"194888"}},{"name":"OKA","type":"city","country":"JP","cityPool":"194895","pools":{"CITY POOL (all class)":"194895"}},{"name":"Kyoto","type":"city","country":"JP","cityPool":null,"pools":{}},{"name":"KR","type":"country","country":"KR","cityPool":null,"pools":{"AK":"168813","BR":"167560","CA":"163969","CI":"166979","CX":"164018","CZ":"169219","ZH":"174812","NX":"191528","JX":"167693","KE":"168302","OZ":"191535","MF":"169121","MH":"166678","MU":"164760","PR":"163647","SQ":"143767","TG":"164921","TR":"160119","VN":"166818","TW":"186817","COUNTRY POOL (all class)":"197359","COUNTRY POOL (FC class)":"197576"}},{"name":"SEL","type":"city","country":"KR","cityPool":"194909","pools":{"CITY POOL (all class)":"194909"}},{"name":"CJU","type":"city","country":"KR","cityPool":"194916","pools":{"CITY POOL (all class)":"194916"}},{"name":"PUS","type":"city","country":"KR","cityPool":"194923","pools":{"CITY POOL (all class)":"194923"}},{"name":"AU","type":"country","country":"AU","cityPool":null,"pools":{"AK":"168855","QZ":"169821","EK":"167343","MH":"166657","MU":"164781","PR":"163612","QF":"167602","SQ":"143774","TK":"174917","TR":"160105","VN":"166902","COUNTRY POOL (all class)":"197387","COUNTRY POOL (FC class)":"197667"}},{"name":"MEL","type":"city","country":"AU","cityPool":"194930","pools":{"CITY POOL (all class)":"194930"}},{"name":"SYD","type":"city","country":"AU","cityPool":"194944","pools":{"CITY POOL (all class)":"194944"}},{"name":"PER","type":"city","country":"AU","cityPool":"194937","pools":{"CITY POOL (all class)":"194937"}},{"name":"BNE","type":"city","country":"AU","cityPool":"194951","pools":{"CITY POOL (all class)":"194951"}},{"name":"HBA","type":"city","country":"AU","cityPool":"194958","pools":{"CITY POOL (all class)":"194958"}},{"name":"ADL","type":"city","country":"AU","cityPool":"194965","pools":{"CITY POOL (all class)":"194965"}},{"name":"NZ","type":"country","country":"NZ","cityPool":null,"pools":{"CZ":"169240","EK":"167357","MH":"166692","MU":"164788","NZ":"167728","QF":"167609","SQ":"143781","COUNTRY POOL (all class)":"197394","COUNTRY POOL (FC class)":"197674"}},{"name":"MV","type":"country","country":"MV","cityPool":null,"pools":{"AI":"167056","AK":"168862","MH":"166706","SQ":"143816"}},{"name":"KH","type":"country","country":"KH","cityPool":null,"pools":{"AK":"168869","EK":"167336","MH":"166685","SQ":"143823","VN":"166867"}},{"name":"MM","type":"country","country":"MM","cityPool":null,"pools":{"SQ":"143830","TG":"165369"}},{"name":"LA","type":"country","country":"LA","cityPool":null,"pools":{"AK":"168911","SQ":"143837","TG":"164900","TR":"160133","VN":"166846"}},{"name":"BN","type":"country","country":"BN","cityPool":null,"pools":{"AK":"168918","MH":"166769","SQ":"143844"}},{"name":"IN","type":"country","country":"IN","cityPool":null,"pools":{"6E":"164914","AI":"167021","AK":"168792","MH":"166636","SQ":"143802","TG":"164907","TR":"160112","VN":"166860","COUNTRY POOL (all class)":"197415"}},{"name":"BD","type":"country","country":"BD","cityPool":null,"pools":{"6E":"164928","AI":"167028","AK":"168883","CZ":"169198","MH":"166713","SQ":"143809","TG":"164879"}},{"name":"NP","type":"country","country":"NP","cityPool":null,"pools":{"6E":"164970","AI":"167035","CZ":"169247","MH":"166727","SQ":"160028","TG":"164886"}},{"name":"LK","type":"country","country":"LK","cityPool":null,"pools":{"6E":"164935","AI":"167042","AK":"168806","MH":"166720","SQ":"160035","TG":"165089","VN":"166909"}},{"name":"PK","type":"country","country":"PK","cityPool":null,"pools":{"AK":"168876","CZ":"169254","TG":"164893"}},{"name":"US","type":"country","country":"US","cityPool":null,"pools":{"AC":"168050","AI":"167063","AY":"179908","BR":"167539","CI":"166965","CX":"164032","EK":"167371","JL":"167490","JX":"167679","KE":"168316","OZ":"191556","LH":"167756","MF":"169149","MU":"164823","NH":"166923","PR":"165593","QF":"167623","QR":"167133","SQ":"143788","VN":"166895","UA":"203302","COUNTRY POOL (all class)":"197401"}},{"name":"CA","type":"country","country":"CA","cityPool":null,"pools":{"AC":"168043","BR":"167546","CI":"166972","CX":"164025","EK":"167392","JL":"167497","JX":"188315","KE":"168330","LH":"167770","MF":"169142","MU":"164830","NH":"166930","PR":"163619","QR":"167140","SQ":"143795"}},{"name":"EU","type":"country","country":"EU","cityPool":null,"pools":{"6E":"164991","AF":"179915","AI":"167105","AY":"179901","BR":"167595","CA":"163976","CI":"166993","CX":"164053","CZ":"169261","3U":"174847","EK":"167322","EY":"179845","GF":"186586","JL":"167504","KE":"168344","LH":"167763","LX":"168743","OS":"168750","SN":"168757","MH":"166790","MU":"164844","QF":"167665","QR":"167119","SQ":"143858","SV":"191948","TG":"165390","TK":"174882","VN":"166881","COUNTRY POOL (all class)":"197408"}},{"name":"UK","type":"country","country":"UK","cityPool":null,"pools":{"AF":"180279","AY":"180202","EK":"181385","EY":"180111","LH":"181476","QR":"181287","SQ":"181056","COUNTRY POOL (FC class)":"197681"}},{"name":"FR","type":"country","country":"FR","cityPool":null,"pools":{"AF":"180258","AY":"180251","EK":"181406","EY":"180146","LH":"181504","QR":"181308","SQ":"181070"}},{"name":"DE","type":"country","country":"DE","cityPool":null,"pools":{"AF":"180286","AY":"180216","EK":"181427","EY":"180132","LH":"181469","QR":"181315","SQ":"181063"}},{"name":"IT","type":"country","country":"IT","cityPool":null,"pools":{"AF":"180272","AY":"180209","EK":"181392","EY":"180118","LH":"181490","QR":"181301","SQ":"181084"}},{"name":"ES","type":"country","country":"ES","cityPool":null,"pools":{"AF":"180265","AY":"180244","EK":"181399","EY":"180125","LH":"181483","QR":"181294","SQ":"181126"}},{"name":"CH","type":"country","country":"CH","cityPool":null,"pools":{"AF":"180293","AY":"180237","EK":"181413","EY":"180139","LH":"181560","QR":"181322","SQ":"181077"}},{"name":"NL","type":"country","country":"NL","cityPool":null,"pools":{"AF":"180300","AY":"180223","EK":"181420","EY":"180160","LH":"181525","QR":"181343","SQ":"181112"}},{"name":"NO","type":"country","country":"NO","cityPool":null,"pools":{"AF":"180307","AY":"180174","EK":"181455","LH":"181574","QR":"181357","SQ":"181175"}},{"name":"GR","type":"country","country":"GR","cityPool":null,"pools":{"AF":"180314","EK":"181441","EY":"180153","LH":"181595","QR":"181329","SQ":"181196"}},{"name":"DK","type":"country","country":"DK","cityPool":null,"pools":{"AY":"180230","EK":"181462","EY":"180167","LH":"181567","QR":"181378","SQ":"181119"}},{"name":"ME","type":"country","country":"ME","cityPool":null,"pools":{"6E":"164984","AF":"179929","AI":"167112","AK":"168897","3U":"174854","EK":"167329","EY":"179852","GF":"186593","MH":"166797","MU":"164858","QR":"167126","SQ":"143865","SV":"191941","TG":"165397","TK":"174889","COUNTRY POOL (all class)":"197443"}},{"name":"AF","type":"country","country":"AF","cityPool":null,"pools":{"6E":"164942","CZ":"169212","EK":"168708","ET":"169849","EY":"179859","GF":"186838","LH":"168771","QR":"168624","SQ":"176100","SV":"191955","TK":"174896"}},{"name":"MN","type":"country","country":"MN","cityPool":null,"pools":{"CA":"175932","CX":"164039","KE":"168323","SQ":"176296"}},{"name":"RU","type":"country","country":"RU","cityPool":null,"pools":{"CA":"175925","CZ":"169233","3U":"174840","EK":"167364","MU":"175862","TK":"174924"}},{"name":"CENA","type":"country","country":"CENA","cityPool":null,"pools":{"6E":"175638","AI":"175680","AK":"168820","FD":"168932","CA":"175939","CZ":"175785","EK":"175855","MU":"175869","SQ":"176107","TK":"174903"}},{"name":"SAM","type":"country","country":"SAM","cityPool":null,"pools":{"AF":"179922","CX":"175911","EK":"168715","ET":"175960","LH":"168764","QF":"167616","QR":"168631","TK":"174910"}}],"airlines":["3U","6E","AC","AF","AI","AK","AY","BR","CA","CI","CX","CZ","EK","ET","EY","FD","GA","GF","HO","HU","JL","JX","KE","LH","LX","MF","MH","MU","NH","NX","NZ","OS","OZ","PG","PR","QF","QG","QR","QZ","SN","SQ","SV","TG","TK","TR","TW","UA","VJ","VN","ZH"],"columns":{"CITY POOL (all class)":{"collectionId":"M6371","campaignId":"36513","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M6371/campaign/36513/selection/flight/pool/{poolId}/product-list"},"COUNTRY POOL (all class)":{"collectionId":"M11775","campaignId":"47083","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M11775/campaign/47083/selection/flight/pool/{poolId}/product-list"},"COUNTRY POOL (FC class)":{"collectionId":"M11775","campaignId":"47083","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M11775/campaign/47083/selection/flight/pool/{poolId}/product-list"},"6E":{"label":"6E","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M6945/campaign/38431/selection/flight/pool/{poolId}/product-list","collectionId":"M6945","campaignId":"38431"},"AC":{"label":"AC","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M6952/campaign/38438/selection/flight/pool/{poolId}/product-list","collectionId":"M6952","campaignId":"38438"},"AF":{"label":"AF","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M6959/campaign/38445/selection/flight/pool/{poolId}/product-list","collectionId":"M6959","campaignId":"38445"},"AI":{"label":"AI","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M6966/campaign/38452/selection/flight/pool/{poolId}/product-list","collectionId":"M6966","campaignId":"38452"},"AK":{"label":"AK","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M13077/campaign/49442/selection/flight/pool/{poolId}/product-list","collectionId":"M13077","campaignId":"49442"},"FD":{"label":"FD","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M13077/campaign/49442/selection/flight/pool/{poolId}/product-list","collectionId":"M13077","campaignId":"49442"},"QZ":{"label":"QZ","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M13077/campaign/49442/selection/flight/pool/{poolId}/product-list","collectionId":"M13077","campaignId":"49442"},"AY":{"label":"AY","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M14169/campaign/50737/selection/flight/pool/{poolId}/product-list","collectionId":"M14169","campaignId":"50737"},"BR":{"label":"BR","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M6973/campaign/38459/selection/flight/pool/{poolId}/product-list","collectionId":"M6973","campaignId":"38459"},"CA":{"label":"CA","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M6980/campaign/38466/selection/flight/pool/{poolId}/product-list","collectionId":"M6980","campaignId":"38466"},"CI":{"label":"CI","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M6987/campaign/38473/selection/flight/pool/{poolId}/product-list","collectionId":"M6987","campaignId":"38473"},"CX":{"label":"CX","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M6994/campaign/38480/selection/flight/pool/{poolId}/product-list","collectionId":"M6994","campaignId":"38480"},"CZ":{"label":"CZ","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M13105/campaign/49477/selection/flight/pool/{poolId}/product-list","collectionId":"M13105","campaignId":"49477"},"3U":{"label":"3U","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M13105/campaign/49477/selection/flight/pool/{poolId}/product-list","collectionId":"M13105","campaignId":"49477"},"ZH":{"label":"ZH","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M13105/campaign/49477/selection/flight/pool/{poolId}/product-list","collectionId":"M13105","campaignId":"49477"},"NX":{"label":"NX","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M13105/campaign/49477/selection/flight/pool/{poolId}/product-list","collectionId":"M13105","campaignId":"49477"},"HU":{"label":"HU","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M13105/campaign/49477/selection/flight/pool/{poolId}/product-list","collectionId":"M13105","campaignId":"49477"},"HO":{"label":"HO","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M13105/campaign/49477/selection/flight/pool/{poolId}/product-list","collectionId":"M13105","campaignId":"49477"},"EK":{"label":"EK","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7001/campaign/38487/selection/flight/pool/{poolId}/product-list","collectionId":"M7001","campaignId":"38487"},"ET":{"label":"ET","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7008/campaign/38494/selection/flight/pool/{poolId}/product-list","collectionId":"M7008","campaignId":"38494"},"EY":{"label":"EY","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M14162/campaign/50730/selection/flight/pool/{poolId}/product-list","collectionId":"M14162","campaignId":"50730"},"GF":{"label":"GF","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7022/campaign/38508/selection/flight/pool/{poolId}/product-list","collectionId":"M7022","campaignId":"38508"},"JL":{"label":"JL","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7029/campaign/38515/selection/flight/pool/{poolId}/product-list","collectionId":"M7029","campaignId":"38515"},"JX":{"label":"JX","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7036/campaign/38522/selection/flight/pool/{poolId}/product-list","collectionId":"M7036","campaignId":"38522"},"KE":{"label":"KE","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7043/campaign/38529/selection/flight/pool/{poolId}/product-list","collectionId":"M7043","campaignId":"38529"},"OZ":{"label":"OZ","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7043/campaign/38529/selection/flight/pool/{poolId}/product-list","collectionId":"M7043","campaignId":"38529"},"LH":{"label":"LH","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7015/campaign/38501/selection/flight/pool/{poolId}/product-list","collectionId":"M7015","campaignId":"38501"},"LX":{"label":"LX","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7015/campaign/38501/selection/flight/pool/{poolId}/product-list","collectionId":"M7015","campaignId":"38501"},"OS":{"label":"OS","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7015/campaign/38501/selection/flight/pool/{poolId}/product-list","collectionId":"M7015","campaignId":"38501"},"SN":{"label":"SN","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7015/campaign/38501/selection/flight/pool/{poolId}/product-list","collectionId":"M7015","campaignId":"38501"},"MF":{"label":"MF","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M13084/campaign/49456/selection/flight/pool/{poolId}/product-list","collectionId":"M13084","campaignId":"49456"},"MH":{"label":"MH","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7050/campaign/38536/selection/flight/pool/{poolId}/product-list","collectionId":"M7050","campaignId":"38536"},"MU":{"label":"MU","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7057/campaign/38543/selection/flight/pool/{poolId}/product-list","collectionId":"M7057","campaignId":"38543"},"NH":{"label":"NH","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7064/campaign/38550/selection/flight/pool/{poolId}/product-list","collectionId":"M7064","campaignId":"38550"},"NZ":{"label":"NZ","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7071/campaign/38557/selection/flight/pool/{poolId}/product-list","collectionId":"M7071","campaignId":"38557"},"PR":{"label":"PR","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7078/campaign/38564/selection/flight/pool/{poolId}/product-list","collectionId":"M7078","campaignId":"38564"},"QF":{"label":"QF","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7085/campaign/38571/selection/flight/pool/{poolId}/product-list","collectionId":"M7085","campaignId":"38571"},"QR":{"label":"QR","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7092/campaign/38578/selection/flight/pool/{poolId}/product-list","collectionId":"M7092","campaignId":"38578"},"SQ":{"label":"SQ","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7099/campaign/38585/selection/flight/pool/{poolId}/product-list","collectionId":"M7099","campaignId":"38585"},"SV":{"label":"SV","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M14995/campaign/51745/selection/flight/pool/{poolId}/product-list","collectionId":"M14995","campaignId":"51745"},"TG":{"label":"TG","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7106/campaign/38592/selection/flight/pool/{poolId}/product-list","collectionId":"M7106","campaignId":"38592"},"TK":{"label":"TK","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M13497/campaign/49939/selection/flight/pool/{poolId}/product-list","collectionId":"M13497","campaignId":"49939"},"TR":{"label":"TR","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7113/campaign/38599/selection/flight/pool/{poolId}/product-list","collectionId":"M7113","campaignId":"38599"},"VN":{"label":"VN","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M7120/campaign/38606/selection/flight/pool/{poolId}/product-list","collectionId":"M7120","campaignId":"38606"},"TW":{"label":"TW","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M659/campaign/20602/selection/flight/pool/{poolId}/product-list","collectionId":"M659","campaignId":"20602"},"GA":{"label":"GA","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M659/campaign/20602/selection/flight/pool/{poolId}/product-list","collectionId":"M659","campaignId":"20602"},"QG":{"label":"QG","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M659/campaign/20602/selection/flight/pool/{poolId}/product-list","collectionId":"M659","campaignId":"20602"},"PG":{"label":"PG","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M659/campaign/20602/selection/flight/pool/{poolId}/product-list","collectionId":"M659","campaignId":"20602"},"VJ":{"label":"VJ","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M659/campaign/20602/selection/flight/pool/{poolId}/product-list","collectionId":"M659","campaignId":"20602"},"UA":{"label":"UA","urlTemplate":"https://campaign.ibu.ctripcorp.com/campaign/collection/M659/campaign/20602/selection/flight/pool/{poolId}/product-list","collectionId":"M659","campaignId":"20602"}}};
+var dests=D.destinations, al=D.airlines, col=D.columns;
+
+var OV=[
+  {k:'__all__',l:'All class',tid:'togAll',on:true},
+  {k:'__fc__',l:'Business & First class',tid:'togFc',on:false}
+];
+var st={destQ:'',airQ:'',ex:{}};
+
+dests.forEach(function(d){
+  if(d.type==='country'){
+    var hc=dests.some(function(dd){return dd.type==='city'&&dd.country===d.name});
+    if(hc)st.ex[d.name]=true;
+  }
+});
+
+
+
+OV.forEach(function(o){var e=document.getElementById(o.tid);if(e)e.checked=o.on});
+
+function mU(k,p){
+  var lk=k;
+  if(k==='__all__')lk='COUNTRY POOL (all class)';
+  else if(k==='__fc__')lk='COUNTRY POOL (FC class)';
+  var info=col[lk];
+  return info?info.urlTemplate.replace('{poolId}',p):null;
+}
+
+function gP(k,n){
+  var d=null;
+  for(var i=0;i<dests.length;i++){if(dests[i].name===n){d=dests[i];break}}
+  if(!d)return null;
+  if(k==='__all__'){return d.type==='city'?d.cityPool:(d.pools['COUNTRY POOL (all class)']||null)}
+  if(k==='__fc__'){return d.pools['COUNTRY POOL (FC class)']||null}
+  return d.pools[k]||null;
+}
+
+function toast(m){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:5px 14px;border-radius:14px;font-size:11px;z-index:9999';
+  t.textContent=m;document.body.appendChild(t);
+  setTimeout(function(){t.parentNode.removeChild(t)},1500);
+}
+
+function cp(e,p){e.preventDefault();e.stopPropagation();if(navigator.clipboard)navigator.clipboard.writeText(p).then(function(){toast('Copied: '+p)})}
+
+function getCols(){
+  var r=[],t=st.airQ.trim().toLowerCase();
+  if(!t){
+    OV.forEach(function(o){var e=document.getElementById(o.tid);if(e&&e.checked)r.push(o)});
+    al.forEach(function(a){r.push({k:a,l:a})});
+  }else{
+    al.forEach(function(a){if(a.toLowerCase().indexOf(t)!==-1)r.push({k:a,l:a})});
+  }
+  return r;
+}
+
+function getCtrys(){
+  var all=dests.filter(function(d){return d.type==='country'});
+  var at=st.airQ.trim().toLowerCase();
+  var dt=st.destQ.trim().toLowerCase();
+
+  // Airline search: only show countries/cities that have data for matching airlines
+  if(at){
+    var matchingAirlines=al.filter(function(a){return a.toLowerCase().indexOf(at)!==-1});
+    return all.filter(function(c){
+      return matchingAirlines.some(function(a){return c.pools&&c.pools[a]}) ||
+             dests.some(function(d){return d.type==='city'&&d.country===c.name&&matchingAirlines.some(function(a){return d.pools&&d.pools[a]})});
+    });
+  }
+
+  if(!dt)return all;
+  var ex=all.filter(function(c){return c.name.toLowerCase()===dt});
+  if(ex.length)return ex;
+  var pr=all.filter(function(c){return c.name.toLowerCase().indexOf(dt)===0});
+  if(pr.length)return pr;
+  var by=all.filter(function(c){return dests.some(function(d){return d.type==='city'&&d.country===c.name&&d.name.toLowerCase().indexOf(dt)===0})});
+  if(by.length)return by;
+  return all.filter(function(c){
+    if(c.name.toLowerCase().indexOf(dt)!==-1)return true;
+    return dests.some(function(d){return d.type==='city'&&d.country===c.name&&d.name.toLowerCase().indexOf(dt)!==-1});
+  });
+}
+
+function render(){
+  var sc=getCols(),sct=getCtrys();
+  
+
+  var thead=document.getElementById('tH');
+  thead.innerHTML='';
+  var hr=document.createElement('tr');
+  var th0=document.createElement('th');th0.textContent='Destination';hr.appendChild(th0);
+  sc.forEach(function(c){var th=document.createElement('th');th.textContent=c.l;if(c.tid)th.className='ov';hr.appendChild(th)});
+  thead.appendChild(hr);
+
+  var tbody=document.getElementById('tB');
+  tbody.innerHTML='';
+  var vn=0,pn=0,tl=st.destQ.trim().toLowerCase();
+
+  sct.forEach(function(co){
+    var cities=dests.filter(function(d){return d.type==='city'&&d.country===co.name});
+    var hc=cities.length>0,ie=!!st.ex[co.name];
+    var sc2=cities;
+    if(tl){
+      var cm=co.name.toLowerCase().indexOf(tl)!==-1;
+      if(!cm)sc2=cities.filter(function(c){return c.name.toLowerCase().indexOf(tl)!==-1});
+    }
+    if(st.airQ.trim()){
+      var matchingAl=al.filter(function(a){return a.toLowerCase().indexOf(st.airQ.trim().toLowerCase())!==-1});
+      sc2=sc2.filter(function(c){return matchingAl.some(function(a){return c.pools&&c.pools[a]})});
+    }
+
+    var tr=document.createElement('tr');tr.className='co';
+    var td=document.createElement('td');
+    var h='<span class="dn">';
+    h+=hc?'<span class="ex'+(ie?' op':'')+'">▶</span>':'<span style="width:14px;display:inline-block"></span>';
+    h+='<b>'+co.name+'</b> <span class="tg ct">country</span></span>';
+    td.innerHTML=h;tr.appendChild(td);
+
+    sc.forEach(function(c){
+      var td2=document.createElement('td');td2.className='c';
+      var pid=gP(c.k,co.name);
+      if(pid){
+        var url=mU(c.k,pid);
+        var a=document.createElement('a');a.className='pk';a.textContent=pid;
+        if(url){a.href=url;a.target='_blank'}
+        a.oncontextmenu=function(e){cp(e,pid)};
+        td2.appendChild(a);pn++;
+      }else{td2.innerHTML='<span class="pk na">—</span>'}
+      tr.appendChild(td2);
+    });
+
+    (function(nm,hasC){
+      tr.onclick=function(e){
+        if(e.target.tagName==='A')return;
+        if(!hasC)return;
+        st.ex[nm]=!st.ex[nm];render();
+      };
+    })(co.name,hc);
+
+    tbody.appendChild(tr);vn++;
+
+    if(hc&&ie){
+      sc2.forEach(function(ct){
+        var tr2=document.createElement('tr');tr2.className='ci';
+        var td3=document.createElement('td');
+        td3.innerHTML='<span class="dn"><span style="width:14px;display:inline-block"></span>'+ct.name+' <span class="tg cy">city</span></span>';
+        tr2.appendChild(td3);
+
+        sc.forEach(function(c){
+          var td4=document.createElement('td');td4.className='c';
+          var pid=gP(c.k,ct.name);
+          if(pid){
+            var url=mU(c.k,pid);
+            var a=document.createElement('a');a.className='pk';a.textContent=pid;
+            if(url){a.href=url;a.target='_blank'}
+            a.oncontextmenu=function(e){cp(e,pid)};
+            td4.appendChild(a);pn++;
+          }else{td4.innerHTML='<span class="pk na">—</span>'}
+          tr2.appendChild(td4);
+        });
+
+        tbody.appendChild(tr2);vn++;
+      });
+    }
+  });
+
+  document.getElementById('statsBar').innerHTML='<b>'+vn+'</b> dest · <b>'+pn+'</b> pools · <b>'+sc.length+'</b> cols';
+}
+
+
+document.getElementById('destSearch').oninput=function(e){st.destQ=e.target.value;render()};
+document.getElementById('airlineSearch').oninput=function(e){st.airQ=e.target.value;render()};
+document.getElementById('clearDest').onclick=function(){document.getElementById('destSearch').value='';st.destQ='';render()};
+document.getElementById('clearAir').onclick=function(){document.getElementById('airlineSearch').value='';st.airQ='';render()};
+document.getElementById('togAll').onchange=function(){render()};
+document.getElementById('togFc').onchange=function(){render()};
+
+render();
+</script>
+</body>
+</html>
